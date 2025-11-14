@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AIQ — Login / Signup</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="card">
+    <h2>Sign up / Log in</h2>
+
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Password (min 6 chars)" />
+
+    <div class="row">
+      <button id="signupBtn" class="btn">Sign up</button>
+      <button id="loginBtn" class="btn ghost">Log in</button>
+    </div>
+
+    <p id="status" class="small"></p>
+
+    <p class="small"><a href="index.html">Back to home</a></p>
+  </div>
+
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+    const signupBtn = document.getElementById("signupBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const status = document.getElementById("status");
+
+    signupBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      if (!email || password.length < 6) {
+        status.textContent = "Enter a valid email and a password of at least 6 characters.";
+        return;
+      }
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        status.textContent = "Account created — redirecting...";
+      } catch (err) {
+        status.textContent = "Error: " + err.message;
+      }
+    });
+
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      if (!email || !password) {
+        status.textContent = "Please enter email and password.";
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        status.textContent = "Login successful — redirecting...";
+      } catch (err) {
+        status.textContent = "Error: " + err.message;
+      }
+    });
+
+    // If already signed in, go to aiq page automatically
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        // small delay so user sees message
+        setTimeout(() => window.location.href = "aiq.html", 800);
+      }
+    });
+  </script>
+</body>
+</html>
