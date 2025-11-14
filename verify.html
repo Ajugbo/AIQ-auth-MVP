@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AIQ — Verify</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="card">
+    <h2>Verify AIQ Result</h2>
+
+    <input id="code" placeholder="Enter Test ID (e.g. AIQ-ABCDEFG)" />
+    <button id="checkBtn" class="btn">Check</button>
+
+    <div id="output" class="hidden">
+      <p><strong>Prompt:</strong> <span id="outPrompt"></span></p>
+      <p><strong>Score:</strong> <span id="outScore"></span></p>
+      <p><strong>Feedback:</strong> <span id="outFeedback"></span></p>
+      <p><strong>Time:</strong> <span id="outTime"></span></p>
+    </div>
+
+    <p class="small"><a href="index.html">Back to home</a></p>
+  </div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+    const checkBtn = document.getElementById("checkBtn");
+    const output = document.getElementById("output");
+
+    checkBtn.addEventListener("click", async () => {
+      const id = document.getElementById("code").value.trim();
+      if (!id) return alert("Enter a Test ID");
+
+      try {
+        const snap = await get(ref(db, `results/${id}`));
+        const data = snap.exists() ? snap.val() : null;
+        if (!data) {
+          alert("No result found for " + id);
+          return;
+        }
+        document.getElementById("outPrompt").textContent = data.prompt;
+        document.getElementById("outScore").textContent = data.score + " / 100";
+        document.getElementById("outFeedback").textContent = data.feedback;
+        document.getElementById("outTime").textContent = new Date(data.timestamp).toLocaleString();
+        output.classList.remove("hidden");
+      } catch (err) {
+        alert("Error fetching result: " + err.message);
+      }
+    });
+
+    // Auto-fill from url parameter ?id=AIQ-...
+    const params = new URLSearchParams(window.location.search);
+    const startId = params.get("id");
+    if (startId) {
+      document.getElementById("code").value = startId;
+      document.getElementById("checkBtn").click();
+    }
+  </script>
+</body>
+</html>
